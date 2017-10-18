@@ -38,11 +38,11 @@ class Peer(object):
         print("{0} SEND ACCEPTED MESSAGE WITH ACCEPTED ID: {1} TO {2}".format(self.name, self.accepted_id, receiver.name))
 
     def send_suggestion_denied(self, receiver, permitted_id):
-        print("{0} SEND PERMISSION DENIED TO {1}".format(self.name, receiver.name))
+        print("{0} SEND PERMISSION DENIED {1} TO {2}".format(self.name, self.permitted_id, receiver.name))
 
     def receive_suggestion_denied(self, sender, permitted_id):
         self.permitted_id_from_suggestion_denied = permitted_id
-        print("{0} RECEIVE PERMISSION DENIED FROM {1}".format(self.name, sender.name))
+        print("{0} RECEIVE PERMISSION DENIED {1} FROM {2}".format(self.name, self.permitted_id_from_suggestion_denied, sender.name))
 
     def send_permission_request(self, receiver):
         self.new_suggestion_id = SuggestionID(self.permitted_id_from_suggestion_denied.number + 1, self.accepted_id.uid)
@@ -65,12 +65,17 @@ class Peer(object):
         print("{0} RECEIVE PERMITTED ID: {1}, ACCEPTED ID: {2}, ACCEPTED VALUE: {3} FROM {4}".format(self.name, sender.permitted_id, sender.accepted_id, sender.accepted_value, sender.name))
 
 
-def print_peers_status(peer_A, peer_B, peer_C):
-    print("{0}: PERMITTED ID: {1}, ACCEPTED ID: {2}, ACCEPTED VALUE: {3}".format(peer_A.name, peer_A.permitted_id, peer_A.accepted_id, peer_A.accepted_value))
-    print("{0}: PERMITTED ID: {1}, ACCEPTED ID: {2}, ACCEPTED VALUE: {3}".format(peer_B.name, peer_B.permitted_id, peer_B.accepted_id, peer_B.accepted_value))
-    print("{0}: PERMITTED ID: {1}, ACCEPTED ID: {2}, ACCEPTED VALUE: {3}".format(peer_C.name, peer_C.permitted_id, peer_C.accepted_id, peer_C.accepted_value))
+
+def print_list_of_peers(peers):
+    for peer in peers:
+        print("{0}: PERMITTED ID: {1}, ACCEPTED ID: {2}, ACCEPTED VALUE: {3}".format(peer.name, peer.permitted_id,
+                                                                                     peer.accepted_id,
+                                                                                     peer.accepted_value))
+
 
 if __name__ == '__main__':
+
+    # Peer A is Suggester
 
     peer_A = Peer()
     peer_A.name = "PEER A"
@@ -96,21 +101,31 @@ if __name__ == '__main__':
     peer_C.permitted_id_from_suggestion_denied = None
     peer_C.new_suggestion_id = None
 
+    # Add all Peers to list
+
+    peers = []
+    peers.append(peer_A)
+    peers.append(peer_B)
+    peers.append(peer_C)
+
+
+    # Starting Case 2
+
     print("BEFORE:")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
 
     print("")
     print("PROCESS:")
 
     print("1")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     peer_A.send_suggestion(peer_C, peer_A.accepted_id, peer_A.accepted_value)
 
     print("")
     print("2")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     if peer_C.receive_suggestion(peer_A, peer_A.accepted_id, peer_A.accepted_value) == False:
@@ -120,7 +135,7 @@ if __name__ == '__main__':
 
     print("")
     print("3")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     peer_A.send_permission_request(peer_C)
@@ -131,7 +146,7 @@ if __name__ == '__main__':
 
     print("")
     print("4")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     peer_C.send_permission_granted(peer_A, peer_C.permitted_id, peer_C.accepted_id, peer_C.accepted_value)
@@ -143,7 +158,7 @@ if __name__ == '__main__':
 
     print("")
     print("5")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     peer_A.send_suggestion(peer_C, peer_A.new_suggestion_id, peer_A.accepted_value)
@@ -154,7 +169,7 @@ if __name__ == '__main__':
 
     print("")
     print("6")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
     print("")
 
     peer_C.send_accepted_message(peer_A, peer_C.accepted_id)
@@ -162,4 +177,4 @@ if __name__ == '__main__':
 
     print("")
     print("AFTER:")
-    print_peers_status(peer_A, peer_B, peer_C)
+    print_list_of_peers(peers)
