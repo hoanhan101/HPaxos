@@ -1,0 +1,49 @@
+
+======================================================
+TO-DO
+    Implement permission request denied
+    Implement suggestion denied
+    Consensus on accepted id and value
+    More examples and test cases
+======================================================
+
+Thought process:
+
+Setup:
+    1 server
+    2 clients
+
+Choose Server to be Suggester to trigger request/suggestion and also Arbiter to collect accepted message
+2 Clients will be Voters
+
+To make sure that clients to all clients, must keep a list of clients
+
+Message Protocol:
+    SUGGESTION_(1,'A')_'Foo'
+    SUGGESTION-DENIED_(2,'E')
+    PERMISSION-GRANTED_(3,'A')_(3,'A')_'Foo'
+    PERMISSION-DENIED_(3,'A')
+    PERMISSION-REQUEST_(3,'A')
+    ACCEPTED_(3,'A')
+
+    Split data with '_'
+    If new_data[0] == X1 do Y1
+
+How it works:
+    Let Server keep a list of all Clients to broadcast message
+        The way Server do that depend how we want to set it up
+            Server will stay there and listen
+            When receive "READY" from all Clients, we are ready for next step
+
+    Server send Permission Request (Permitted ID) to all Clients
+        When Client receive Permission Request,
+            If that Permitted ID > Client's Permitted ID:
+                Update Client's permitted ID
+                Send back PERMISSION-GRANTED_(3,'A')_(3,'A')_'Foo'
+            Otherwise, send back PERMISSION-DENIED_(3,'A')
+
+        If Server receive a PERMISSION-DENIED_(3,'A')
+            Server send back PERMISSION-REQUEST_(4,'A')
+
+
+
