@@ -1,11 +1,74 @@
+PERMISSION-REQUEST_5,A
 
-======================================================
+
+============================================================================================================
+
 TO-DO
     Implement permission request denied
     Implement suggestion denied
-    Consensus on accepted id and value
+    Consensus on accepted id and value (update existing value with accepted id?)
     More examples and test cases
-======================================================
+
+
+============================================================================================================
+Case 1:
+    Choose Server to be a Suggester and Arbiter
+    Have 2 Clients
+
+    When Server send Permission Request to all Clients (2 in this case), 3 things might happen:
+        Server receive Permission Granted from all Clients (2 in this case)
+            Passed
+
+        Server receive Permission Granted from majority of Clients (2 / 2 = 1 in this case)
+            Passed
+
+        Server receive Permission Denied from all Clients (2 in this case)
+        Server receive Permission Denied from majority of Clients (1 in this case)
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================================================================
+
+Now Server and Client behave the same way since they can both send and receive.
+So Server and Client are just names, we treat them the same, as as Peers
+
+How can Client keep a list of other Clients?
+One way we can do that is with the help of Server
+We can setup like this in the beginning when we start all our Server and Clients:
+    All Clients send a READY message to Server
+    Therefore, Server now know all the clients' addresses and keep them in a dictionary
+    Use the Server to send back that list to all Clients
+    At this step, a client should known all other clients, and also keep them in a list
+
+LIST OF CLIENTS' MESSAGE PROTOCOL:
+    Instead of sending a dictionary like this as string, {'10.10.117.101':9000, '10.10.117.102':9001}
+    We can do something like this
+    10.10.117.101,9000_10.10.117.102,9001
+
+
+
+That the only way both Server and Client can make sure it know all other peers
+
+We have some types of message
+    Permission Request
+        send to all Peers
+        receive by a Peer
+            If agree, send Permission Granted to that Peer only, not all Peers
+            Same with Permission Denied
+
+    Suggestion
+        send to those who have sent back Permission Granted, not all Peers
+
+============================================================================================================
 
 Thought process:
 

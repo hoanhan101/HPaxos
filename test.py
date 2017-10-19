@@ -34,3 +34,30 @@ if __name__ == '__main__':
 
     if is_first_id_larger(new_data, permitted_id):
         print("True")
+
+
+    clients = {'127.0.0.1': 50806}
+    addr = ('127.0.0.1', 50806)
+
+    if addr[0] in clients:
+        print("addr {0} in clients {1}".format(addr, clients))
+    else:
+        print("addr {0} NOT in clients {1}".format(addr, clients))
+
+
+    PERMISSION_GRANTED_GROUP = []
+
+    client_1 = ('127.0.0.1', 9000)
+    client_2 = ('127.0.0.1', 57647)
+
+
+    PERMISSION_GRANTED_GROUP.append(client_1)
+    PERMISSION_GRANTED_GROUP.append(client_2)
+
+    print(PERMISSION_GRANTED_GROUP)
+
+    if ('127.0.0.1', 57647) in PERMISSION_GRANTED_GROUP:
+        print("YES")
+    else:
+        print("OOPS")
+
