@@ -51,22 +51,6 @@ class Client(threading.Thread):
                 new_permitted_id = split_string(self.permitted_id, ',')
                 new_data_id = split_string(data[1], ',')
 
-                # if data[0] == "PERMISSION-GRANTED":
-                #     print("RECEIVE PERMISSION GRANTED FROM {0}".format(addr))
-                #
-                #     self.permitted_id = data[1]
-                #     # NEED TODO SOMETHING WITH ACCEPTED ID AND VALUE
-                #     message = "SUGGESTION_{0}_{1}".format(self.permitted_id, self.accepted_value)
-                #
-                #     s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-                #     print("SENT {0} TO {1}".format(message, UDP_ADDRESS))
-                # elif data[0] == "ACCEPTED":
-                #     print("RECEIVE ACCEPTED FROM {0}".format(addr))
-                #
-                #     self.accepted_id = data[1]
-                #     print("DONE")
-                #     print(self.permitted_id, self.accepted_id, self.accepted_value)
-
                 if data[0] == "PERMISSION-REQUEST":
                     print("RECEIVE PERMISSION REQUEST {0} FROM {1}".format(new_data_id, addr))
 
@@ -80,6 +64,17 @@ class Client(threading.Thread):
                         s.sendto(message.encode(), addr)
                         print("SEND PERMISSION GRANTED ({0}) ({1}) \"{2}\" TO {3}".format(self.permitted_id, self.accepted_id, self.accepted_value, addr))
 
+
+                elif data[0] == "PERMISSION-GRANTED":
+                    print("RECEIVE PERMISSION GRANTED FROM {0}".format(addr))
+
+                    self.permitted_id = data[1]
+
+                    message = "SUGGESTION_{0}_{1}".format(self.permitted_id, self.accepted_value)
+
+                    s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
+                    print("SENT {0} TO {1}".format(message, UDP_ADDRESS))
+
                 elif data[0] == "SUGGESTION":
                     print("RECEIVE SUGGESTION FROM {0}".format(addr))
 
@@ -89,6 +84,7 @@ class Client(threading.Thread):
                         self.permitted_id = data[1]
                         self.accepted_id = data[1]
                         self.accepted_value = data[2]
+
                         print("UPDATE PERMITTED ID TO {0}".format(data[1]))
                         print("UPDATE ACCEPTED ID TO {0}".format(data[1]))
                         print("UPDATE ACCEPTED VALUE TO {0}".format(data[2]))
@@ -97,6 +93,13 @@ class Client(threading.Thread):
 
                         s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
                         print(self.permitted_id, self.accepted_id, self.accepted_value)
+
+                elif data[0] == "ACCEPTED":
+                    print("RECEIVE ACCEPTED FROM {0}".format(addr))
+
+                    self.accepted_id = data[1]
+                    print("DONE")
+                    print(self.permitted_id, self.accepted_id, self.accepted_value)
 
             except Exception as e:
                 print("NO COMMAND FOUND : {0}".format(e))
