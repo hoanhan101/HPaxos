@@ -19,8 +19,8 @@ class Client(threading.Thread):
     def __init__(self, task):
         threading.Thread.__init__(self)
         self.task = task
-        self.permitted_id = "1,A"
-        self.accepted_id = "1,A"
+        self.permitted_id = "2,E"
+        self.accepted_id = "2,E"
         self.accepted_value = "Bar"
 
     def send(self):
@@ -55,15 +55,21 @@ class Client(threading.Thread):
                     print("RECEIVE PERMISSION REQUEST {0} FROM {1}".format(new_data_id, addr))
 
                     if is_first_id_larger_and_equal(new_data_id, new_permitted_id):
-                        print("{0} > {1}".format(new_data_id, new_permitted_id))
-
                         self.permitted_id = data[1]
-                        print("UPDATE PERMITTED ID TO {0}".format(data[1]))
 
                         message = "PERMISSION-GRANTED_{0}_{1}_{2}".format(self.permitted_id, self.accepted_id, self.accepted_value)
-                        s.sendto(message.encode(), addr)
-                        print("SEND PERMISSION GRANTED ({0}) ({1}) \"{2}\" TO {3}".format(self.permitted_id, self.accepted_id, self.accepted_value, addr))
 
+                        s.sendto(message.encode(), addr)
+                        print("SENT {0} TO {1}".format(message, addr))
+                    else:
+                        print("SUGGESTION ID {0} < PERMITTED ID {1}".format(new_data_id, new_permitted_id))
+
+                        new_suggestion_id = "{0},{1}".format(int(new_permitted_id[0]) + 1, new_permitted_id[1])
+
+                        message = "PERMISSION-REQUEST_{0}".format(new_suggestion_id)
+
+                        s.sendto(message.encode(), addr)
+                        print("SENT {0} TO {1}".format(message, addr))
 
                 elif data[0] == "PERMISSION-GRANTED":
                     print("RECEIVE PERMISSION GRANTED FROM {0}".format(addr))
@@ -72,8 +78,8 @@ class Client(threading.Thread):
 
                     message = "SUGGESTION_{0}_{1}".format(self.permitted_id, self.accepted_value)
 
-                    s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-                    print("SENT {0} TO {1}".format(message, UDP_ADDRESS))
+                    s.sendto(message.encode(), addr)
+                    print("SENT {0} TO {1}".format(message, addr))
 
                 elif data[0] == "SUGGESTION":
                     print("RECEIVE SUGGESTION FROM {0}".format(addr))
@@ -85,14 +91,20 @@ class Client(threading.Thread):
                         self.accepted_id = data[1]
                         self.accepted_value = data[2]
 
-                        print("UPDATE PERMITTED ID TO {0}".format(data[1]))
-                        print("UPDATE ACCEPTED ID TO {0}".format(data[1]))
-                        print("UPDATE ACCEPTED VALUE TO {0}".format(data[2]))
-
                         message = "ACCEPTED_{0}".format(self.permitted_id)
 
                         s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
                         print(self.permitted_id, self.accepted_id, self.accepted_value)
+                    else:
+                        print("SUGGESTION ID {0} < PERMITTED ID {1}".format(new_data_id, new_permitted_id))
+
+                        new_suggestion_id = "{0},{1}".format(int(new_permitted_id[0]) + 1, new_permitted_id[1])
+
+                        message = "PERMISSION-REQUEST_{0}".format(new_suggestion_id)
+
+                        s.sendto(message.encode(), addr)
+                        print("SENT {0} TO {1}".format(message, addr))
+
 
                 elif data[0] == "ACCEPTED":
                     print("RECEIVE ACCEPTED FROM {0}".format(addr))

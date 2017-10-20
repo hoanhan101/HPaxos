@@ -159,7 +159,7 @@ class Server(threading.Thread):
 
                         new_suggestion_id = "{0},{1}".format(int(new_permitted_id[0]) + 1, new_permitted_id[1])
 
-                        message = "SUGGESTION_{0}_{1}".format(new_suggestion_id, self.accepted_value)
+                        message = "PERMISSION-REQUEST_{0}".format(new_suggestion_id)
 
                         # SEND ONE TO MYSELF
                         s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
@@ -179,7 +179,7 @@ class Server(threading.Thread):
                             print(self.permitted_id, self.accepted_id, self.accepted_value)
 
                             print("FINISHED RECEIVE-THREAD")
-                            return
+                            # return
 
                         else:
                             print("DOESNT HAVE ENOUGH ACCEPTED MESSAGES FROM MAJORITY")
