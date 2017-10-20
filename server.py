@@ -28,29 +28,32 @@ class Server(threading.Thread):
         self.accepted_value = "Foo"
 
         self.numbers_of_clients = 1
-        self.numbers_of_permission_granted = 0
-        self.numbers_of_permission_denied = 0
-        self.numbers_of_accepted_message = 0
 
     def send(self):
         while True:
             message = input("")
 
             if message == "q":
+                # SEND ONE TO MYSELF
+                s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
+                print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
+
+                # SEND ONE TO EVERYBODY
                 for IP, port in clients.items():
                     s.sendto(message.encode(), (IP, port))
-                    print("SENT {0} TO {1}".format(message, IP))
-                    print("FINISHED SEND-THREAD")
+                    print("SENT {0} TO ({1}, {2})".format(message, IP, port))
+
+                print("FINISHED SEND-THREAD")
                 return
 
             # SEND ONE TO MYSELF
             s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-            print("SENT {0} TO {1}".format(message, UDP_ADDRESS))
+            print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
 
+            # SEND ONE TO EVERYBODY
             for IP, port in clients.items():
                 s.sendto(message.encode(), (IP, port))
-                print("SENT {0} TO {1}".format(message, IP))
-
+                print("SENT {0} TO ({1}, {2})".format(message, IP, port))
 
     def receive(self):
         print(self.permitted_id, self.accepted_id, self.accepted_value)
@@ -59,9 +62,10 @@ class Server(threading.Thread):
             raw_data = raw_data.decode()
 
             # update client's IP and Port
-            clients[addr[0]] = addr[1]
+            if addr[1] != 9000:
+                clients[addr[0]] = addr[1]
 
-            # print(clients)
+            # print(clients, PERMISSION_GRANTED_GROUP, ACCEPTED_MESSAGE_GROUP)
 
             if raw_data == "q":
                 print("FINISHED RECEIVE-THREAD")
@@ -70,34 +74,39 @@ class Server(threading.Thread):
             try:
                 data = split_string(raw_data, '_')
 
-                # PERMISSION-REQUEST_5,A
-
+                # Format: [number, unique_uid]
                 new_permitted_id = split_string(self.permitted_id, ',')
                 new_data_id = split_string(data[1], ',')
 
                 if data[0] == "PERMISSION-REQUEST":
-                    print("RECEIVE PERMISSION REQUEST FROM {0}".format(addr))
+                    print("RECEIVED PERMISSION REQUEST FROM {0}".format(addr))
 
                     if is_first_id_larger_and_equal(new_data_id, new_permitted_id):
-                        print("SUGGESTION ID {0} >= PERMITTED ID {1}".format(new_data_id, new_permitted_id))
                         self.permitted_id = data[1]
 
                         message = "PERMISSION-GRANTED_{0}_{1}_{2}".format(self.permitted_id, self.accepted_id, self.accepted_value)
 
                         # SEND ONE TO MYSELF
                         s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-                        print("SENT {0} TO {1}".format(message, UDP_PORT))
+                        print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
 
                         # SEND ONE TO EVERYBODY
-                        for IP, port in clients.items():
-                            s.sendto(message.encode(), (IP, port))
-                            print("SENT {0} TO {1}".format(message, IP))
+                        # for IP, port in clients.items():
+                        #     s.sendto(message.encode(), (IP, port))
+                        #     print("SENT {0} TO {1}".format(message, IP))
                     else:
                         print("SUGGESTION ID {0} < PERMITTED ID {1}".format(new_data_id, new_permitted_id))
 
+                        new_suggestion_id = "{0},{1}".format(int(new_permitted_id[0]) + 1, new_permitted_id[1])
+
+                        message = "PERMISSION-REQUEST_{0}".format(new_suggestion_id)
+
+                        # SEND ONE TO MYSELF
+                        s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
+                        print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
 
                 elif data[0] == "PERMISSION-GRANTED":
-                    print("RECEIVE PERMISSION GRANTED FROM {0}".format(addr))
+                    print("RECEIVED PERMISSION GRANTED FROM {0}".format(addr))
 
                     if (addr[0], addr[1]) not in PERMISSION_GRANTED_GROUP:
                         PERMISSION_GRANTED_GROUP.append((addr[0], addr[1]))
@@ -110,23 +119,22 @@ class Server(threading.Thread):
 
                             # SEND ONE TO MYSELF
                             s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-                            print("SENT {0} TO {1}".format(message, UDP_PORT))
+                            print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
 
                             # SEND ONE TO EVERYBODY
                             for IP, port in clients.items():
                                 s.sendto(message.encode(), (IP, port))
-                                print("SENT {0} TO {1}".format(message, IP))
+                                print("SENT {0} TO ({1}, {2})".format(message, IP, port))
                                 print(self.permitted_id, self.accepted_id, self.accepted_value)
-
-                            print("SEND SUGGESTION TO ALL CLIENTS")
+                                print("SENT SUGGESTION TO ALL CLIENTS")
                         else:
-                            print("DOESNT HAVE ENOUGH PERMISSION GRANTED VOTES FROM MAJORITY")
+                            print("DIDNT HAVE ENOUGH PERMISSION GRANTED VOTES FROM MAJORITY")
                     else:
-                        print("ALREADY RECEIVE PERMISSION GRANTED FROM {0}".format((addr[0], addr[1])))
+                        print("ALREADY RECEIVED PERMISSION GRANTED FROM {0}".format((addr[0], addr[1])))
 
 
                 elif data[0] == "SUGGESTION":
-                    print("RECEIVE SUGGESTION FROM {0}".format(addr))
+                    print("RECEIVED SUGGESTION FROM {0}".format(addr))
 
                     if is_first_id_larger_and_equal(new_data_id, new_permitted_id):
                         print("SUGGESTION ID {0} >= PERMITTED ID {1}".format(new_data_id, new_permitted_id))
@@ -139,26 +147,40 @@ class Server(threading.Thread):
 
                         # SEND ONE TO MYSELF
                         s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
-                        print("SENT {0} TO {1}".format(message, UDP_PORT))
+                        print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
 
                         # SEND ONE TO EVERYBODY
-                        for IP, port in clients.items():
-                            s.sendto(message.encode(), (IP, port))
-                            print("SENT {0} TO {1}".format(message, IP))
-                        print(self.permitted_id, self.accepted_id, self.accepted_value)
+                        # for IP, port in clients.items():
+                        #     s.sendto(message.encode(), (IP, port))
+                        #     print("SENT {0} TO {1}".format(message, IP))
+                        # print(self.permitted_id, self.accepted_id, self.accepted_value)
                     else:
                         print("SUGGESTION ID {0} < PERMITTED ID {1}".format(new_data_id, new_permitted_id))
 
+                        new_suggestion_id = "{0},{1}".format(int(new_permitted_id[0]) + 1, new_permitted_id[1])
+
+                        message = "SUGGESTION_{0}_{1}".format(new_suggestion_id, self.accepted_value)
+
+                        # SEND ONE TO MYSELF
+                        s.sendto(message.encode(), (UDP_ADDRESS, UDP_PORT))
+                        print("SENT {0} TO ({1}, {2})".format(message, UDP_ADDRESS, UDP_PORT))
+
                 elif data[0] == "ACCEPTED":
-                    print("RECEIVE ACCEPTED FROM {0}".format(addr))
+                    print("RECEIVED ACCEPTED FROM {0}".format(addr))
 
                     if (addr[0], addr[1]) not in ACCEPTED_MESSAGE_GROUP:
                         ACCEPTED_MESSAGE_GROUP.append((addr[0], addr[1]))
 
                         if len(ACCEPTED_MESSAGE_GROUP) >= int(self.numbers_of_clients / 2):
                             self.accepted_id = data[1]
+
                             print("DONE")
+                            print(clients, PERMISSION_GRANTED_GROUP, ACCEPTED_MESSAGE_GROUP)
                             print(self.permitted_id, self.accepted_id, self.accepted_value)
+
+                            print("FINISHED RECEIVE-THREAD")
+                            return
+
                         else:
                             print("DOESNT HAVE ENOUGH ACCEPTED MESSAGES FROM MAJORITY")
                     else:
